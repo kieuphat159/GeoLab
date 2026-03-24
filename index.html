@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bản đồ 11 tỉnh</title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.29/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.29/"></script>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/GeoJSONLayer",
+        "esri/layers/GraphicsLayer",
+        "esri/Graphic",
+      ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic) {
+        function createLayer(url) {
+          return new GeoJSONLayer({
+            url: url,
+
+            renderer: {
+              type: "simple",
+              symbol: {
+                type: "simple-fill",
+                color: [0, 150, 255, 0.3],
+                outline: {
+                  color: [0, 0, 0],
+                  width: 1,
+                },
+              },
+            },
+
+            popupTemplate: {
+              title: "{ten_tinh}",
+              content: `
+                <b>Tên tỉnh:</b> {ten_tinh}<br>
+                <b>Sáp nhập:</b> {sap_nhap}<br>
+                <b>Diện tích:</b> {dien_tich} {don_vi_dien_tich}<br>
+                <b>Dân số:</b> {dan_so}
+                `,
+            },
+          });
+        }
+
+        function createHighwayLayer(url, color) {
+          const layer = new GeoJSONLayer({
+            url: encodeURI(url),
+            outFields: ["*"],
+            title: "Duong bo",
+            renderer: {
+              type: "simple",
+              symbol: {
+                type: "simple-line",
+                color: color,
+                width: 2.5,
+              },
+            },
+            popupTemplate: {
+              title: "Duong bo",
+              content: `
+                <b>Tên:</b> Khong ro<br>
+                <b>Chiều dài (Km):</b> Khong ro<br>
+                <b>Chiều rộng (m):</b> Khong ro<br>
+                <b>Các tỉnh đi qua:</b> Khong co du lieu
+              `,
+            },
+          });
+
+          fetch(encodeURI(url))
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Khong tai duoc file highway: ${url}`);
+              }
+              return response.json();
+            })
+            .then((geojson) => {
+              const props = geojson?.features?.[0]?.properties || {};
+              const ten = props.ten || "Duong bo";
+              const chieuDai = props.chieu_dai_km ?? "Khong ro";
+              const chieuRong = props.chieu_rong_m ?? "Khong ro";
+              const cacTinhDiQua = Array.isArray(props.cac_tinh_di_qua)
+                ? props.cac_tinh_di_qua.join(", ")
+                : props.cac_tinh_di_qua || "Khong co du lieu";
+
+              layer.title = ten;
+              layer.popupTemplate = {
+                title: ten,
+                content: `
+                  <b>Tên:</b> ${ten}<br>
+                  <b>Chiều dài (Km):</b> ${chieuDai}<br>
+                  <b>Chiều rộng (m):</b> ${chieuRong}<br>
+                  <b>Các tỉnh đi qua:</b> ${cacTinhDiQua}
+                `,
+              };
+            })
+            .catch((error) => {
+              console.error("Khong the nap metadata highway:", error);
+            });
+
+          return layer;
+        }
+
+        const layers = [
+          createLayer("data/province/an_giang.geojson"),
+          createLayer("data/province/ca_mau.geojson"),
+          createLayer("data/province/can_tho.geojson"),
+          createLayer("data/province/dak_lak.geojson"),
+          createLayer("data/province/dong_nai.geojson"),
+          createLayer("data/province/dong_thap.geojson"),
+          createLayer("data/province/khanh_hoa.geojson"),
+          createLayer("data/province/lam_dong.geojson"),
+          createLayer("data/province/tay_ninh.geojson"),
+          createLayer("data/province/tp_hcm.geojson"),
+          createLayer("data/province/vinh_long.geojson"),
+        ];
+
+        const highwayLayers = [
+          createHighwayLayer(
+            "data/highway/Huy-20260324T105115Z-3-001/Huy/ben_luc_long_thanh.geojson",
+            [230, 57, 70, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Huy-20260324T105115Z-3-001/Huy/quoc_lo_13.geojson",
+            [29, 78, 216, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Huy-20260324T105115Z-3-001/Huy/tphcm_long_thanh_dau_giay.geojson",
+            [46, 196, 182, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Phát-20260324T104819Z-3-001/Phát/my_thuan_can_tho.geojson",
+            [76, 201, 240, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Phát-20260324T104819Z-3-001/Phát/tphcm_trung_luong.geojson",
+            [128, 237, 153, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Phát-20260324T104819Z-3-001/Phát/trung_luong_my_thuan.geojson",
+            [249, 199, 79, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Thịnh-20260324T104728Z-3-001/Hệ thống không gian 3 chiều - lab 1 Thịnh/quoc_lo_1k.geojson",
+            [249, 132, 74, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Thịnh-20260324T104728Z-3-001/Hệ thống không gian 3 chiều - lab 1 Thịnh/quoc_lo_56.geojson",
+            [185, 65, 212, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Thịnh-20260324T104728Z-3-001/Hệ thống không gian 3 chiều - lab 1 Thịnh/quoc_lo_61.geojson",
+            [109, 76, 65, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Trí-20260324T104830Z-3-001/Trí/quoc_lo_22.geojson",
+            [0, 172, 193, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Trí-20260324T104830Z-3-001/Trí/quoc_lo_50.geojson",
+            [131, 56, 236, 0.95]
+          ),
+          createHighwayLayer(
+            "data/highway/Trí-20260324T104830Z-3-001/Trí/quoc_lo_51.geojson",
+            [255, 0, 110, 0.95]
+          ),
+          createHighwayLayer("data/highway/quoc_lo_n2.geojson", [45, 127, 249, 0.95]),
+          createHighwayLayer("data/highway/quoc_lo_20.geojson", [243, 156, 18, 0.95]),
+          createHighwayLayer("data/highway/quoc_lo_27.geojson", [35, 155, 86, 0.95]),
+        ];
+
+        const map = new Map({
+          basemap: "topo-vector",
+          layers: [...layers, ...highwayLayers],
+        });
+
+        const universityLayer = new GraphicsLayer({
+          title: "Truong dai hoc",
+        });
+        map.add(universityLayer);
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [106.7, 10.5],
+          zoom: 7,
+        });
+
+        const imageCache = new globalThis.Map();
+
+        function toAbsoluteUniversityImgPath(relativeImgPath) {
+          // data.js stores image path relative to data/university.
+          return `data/university/${relativeImgPath.replace(/^\.\//, "")}`;
+        }
+
+        function guessMimeType(base64) {
+          if (base64.startsWith("iVBORw0KGgo")) {
+            return "image/png";
+          }
+          if (base64.startsWith("/9j/")) {
+            return "image/jpeg";
+          }
+          if (base64.startsWith("R0lGOD")) {
+            return "image/gif";
+          }
+          if (base64.startsWith("PHN2Zy")) {
+            return "image/svg+xml";
+          }
+          return "image/png";
+        }
+
+        function wrapImageInCircleSvg(base64, mimeType) {
+          const rawImageUrl = `data:${mimeType};base64,${base64}`;
+          const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+              <defs>
+                <clipPath id="clip-circle">
+                  <circle cx="32" cy="32" r="26" />
+                </clipPath>
+              </defs>
+              <circle cx="32" cy="32" r="30" fill="#ffffff" stroke="#0b4f6c" stroke-width="4" />
+              <image href="${rawImageUrl}" x="6" y="6" width="52" height="52" preserveAspectRatio="xMidYMid slice" clip-path="url(#clip-circle)" />
+            </svg>
+          `;
+          return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+
+        async function getImageDataUrl(imgJsonPath) {
+          if (imageCache.has(imgJsonPath)) {
+            return imageCache.get(imgJsonPath);
+          }
+
+          const response = await fetch(imgJsonPath);
+          if (!response.ok) {
+            throw new Error(`Khong tai duoc icon: ${imgJsonPath}`);
+          }
+
+          const { base64 } = await response.json();
+          if (!base64) {
+            throw new Error(`File icon khong co truong base64: ${imgJsonPath}`);
+          }
+
+          const mimeType = guessMimeType(base64);
+          const dataUrl = wrapImageInCircleSvg(base64, mimeType);
+          imageCache.set(imgJsonPath, dataUrl);
+          return dataUrl;
+        }
+
+        async function addUniversityMarkers() {
+          const module = await import("./data/university/data.js");
+          const universities = module.default || [];
+
+          const graphics = await Promise.all(
+            universities.map(async (item) => {
+              const imgPath = toAbsoluteUniversityImgPath(item.img);
+              const iconDataUrl = await getImageDataUrl(imgPath);
+
+              return new Graphic({
+                geometry: {
+                  type: "point",
+                  longitude: item.long,
+                  latitude: item.lat,
+                },
+                symbol: {
+                  type: "picture-marker",
+                  url: iconDataUrl,
+                  width: "24px",
+                  height: "24px",
+                },
+                attributes: {
+                  truong: item.truong,
+                  namThanhLap: item.namThanhLap,
+                  chuyenNganh: item.chuyenNganh,
+                  soLuong: item.soLuong,
+                },
+                popupTemplate: {
+                  title: "{truong}",
+                  content: `
+                    <b>Nam thanh lap:</b> {namThanhLap}<br>
+                    <b>Chuyen nganh:</b> {chuyenNganh}<br>
+                    <b>So luong SV:</b> {soLuong}
+                  `,
+                },
+              });
+            })
+          );
+
+          universityLayer.addMany(graphics);
+        }
+
+        addUniversityMarkers().catch((error) => {
+          console.error("Khong the tao marker truong dai hoc:", error);
+        });
+      });
+    </script>
+  </body>
+</html>
