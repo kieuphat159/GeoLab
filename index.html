@@ -19,6 +19,57 @@
         margin: 0;
         padding: 0;
       }
+
+      .edit-panel {
+        min-width: 260px;
+        max-width: 320px;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid #c8d4df;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(10, 32, 56, 0.15);
+        padding: 12px;
+        font-family: "Segoe UI", sans-serif;
+        color: #1f2f3d;
+      }
+
+      .edit-panel h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+
+      .edit-panel p {
+        margin: 0 0 8px;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .edit-panel select,
+      .edit-panel button {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #b9c5d0;
+        font-size: 13px;
+      }
+
+      .edit-panel button {
+        cursor: pointer;
+        border: 0;
+        background: #0b74de;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .edit-panel button.secondary {
+        background: #566573;
+      }
+
+      .edit-panel .status {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #30485d;
+      }
     </style>
   </head>
 
@@ -32,7 +83,9 @@
         "esri/layers/GeoJSONLayer",
         "esri/layers/GraphicsLayer",
         "esri/Graphic",
-      ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic) {
+        "esri/widgets/Sketch",
+        "esri/geometry/support/webMercatorUtils",
+      ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic, Sketch, webMercatorUtils) {
         function createLayer(url) {
           return new GeoJSONLayer({
             url: url,
@@ -133,59 +186,49 @@
           createLayer("data/province/vinh_long.geojson"),
         ];
 
-        const highwayLayers = [
-          createHighwayLayer(
-            "data/highway/ben_luc_long_thanh.geojson",
-            [230, 57, 70, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_13.geojson",
-            [29, 78, 216, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/tphcm_long_thanh_dau_giay.geojson",
-            [46, 196, 182, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/my_thuan_can_tho.geojson",
-            [76, 201, 240, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/tphcm_trung_luong.geojson",
-            [128, 237, 153, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/trung_luong_my_thuan.geojson",
-            [249, 199, 79, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_1k.geojson",
-            [249, 132, 74, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_56.geojson",
-            [185, 65, 212, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_61.geojson",
-            [109, 76, 65, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_22.geojson",
-            [0, 172, 193, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_50.geojson",
-            [131, 56, 236, 0.95]
-          ),
-          createHighwayLayer(
-            "data/highway/quoc_lo_51.geojson",
-            [255, 0, 110, 0.95]
-          ),
-          createHighwayLayer("data/highway/quoc_lo_n2.geojson", [45, 127, 249, 0.95]),
-          createHighwayLayer("data/highway/quoc_lo_20.geojson", [243, 156, 18, 0.95]),
-          createHighwayLayer("data/highway/quoc_lo_27.geojson", [35, 155, 86, 0.95]),
+        const highwayConfigs = [
+          {
+            url: "data/highway/ben_luc_long_thanh.geojson",
+            color: [230, 57, 70, 0.95],
+          },
+          {
+            url: "data/highway/quoc_lo_13.geojson",
+            color: [29, 78, 216, 0.95],
+          },
+          {
+            url: "data/highway/tphcm_long_thanh_dau_giay.geojson",
+            color: [46, 196, 182, 0.95],
+          },
+          {
+            url: "data/highway/my_thuan_can_tho.geojson",
+            color: [76, 201, 240, 0.95],
+          },
+          {
+            url: "data/highway/tphcm_trung_luong.geojson",
+            color: [128, 237, 153, 0.95],
+          },
+          {
+            url: "data/highway/trung_luong_my_thuan.geojson",
+            color: [249, 199, 79, 0.95],
+          },
+          { url: "data/highway/quoc_lo_1k.geojson", color: [249, 132, 74, 0.95] },
+          { url: "data/highway/quoc_lo_56.geojson", color: [185, 65, 212, 0.95] },
+          { url: "data/highway/quoc_lo_61.geojson", color: [109, 76, 65, 0.95] },
+          { url: "data/highway/quoc_lo_22.geojson", color: [0, 172, 193, 0.95] },
+          { url: "data/highway/quoc_lo_50.geojson", color: [131, 56, 236, 0.95] },
+          { url: "data/highway/quoc_lo_51.geojson", color: [255, 0, 110, 0.95] },
+          { url: "data/highway/quoc_lo_n2.geojson", color: [45, 127, 249, 0.95] },
+          { url: "data/highway/quoc_lo_20.geojson", color: [243, 156, 18, 0.95] },
+          { url: "data/highway/quoc_lo_27.geojson", color: [35, 155, 86, 0.95] },
         ];
+
+        const highwayEntries = highwayConfigs.map((item) => ({
+          url: item.url,
+          fileName: item.url.split("/").pop(),
+          layer: createHighwayLayer(item.url, item.color),
+        }));
+
+        const highwayLayers = highwayEntries.map((item) => item.layer);
 
         const map = new Map({
           basemap: "topo-vector",
@@ -197,11 +240,276 @@
         });
         map.add(universityLayer);
 
+        const editableHighwayLayer = new GraphicsLayer({
+          title: "Highway editable",
+          listMode: "hide",
+        });
+        map.add(editableHighwayLayer);
+
         const view = new MapView({
           container: "viewDiv",
           map: map,
           center: [106.7, 10.5],
           zoom: 7,
+        });
+
+        const sketch = new Sketch({
+          view: view,
+          layer: editableHighwayLayer,
+          visibleElements: {
+            createTools: {
+              point: false,
+              polyline: false,
+              polygon: false,
+              rectangle: false,
+              circle: false,
+            },
+            selectionTools: {
+              lassoSelection: false,
+              rectangleSelection: false,
+            },
+            settingsMenu: false,
+          },
+          updateOnGraphicClick: true,
+        });
+
+        sketch.viewModel.defaultUpdateOptions = {
+          tool: "reshape",
+          enableRotation: false,
+          enableScaling: false,
+          multipleSelectionEnabled: false,
+        };
+
+        view.ui.add(sketch, "top-right");
+
+        const editPanel = document.createElement("div");
+        editPanel.className = "edit-panel";
+        editPanel.innerHTML = `
+          <h3>Chinh sua duong bo</h3>
+          <p>Chon 1 tuyen, sua dinh tren ban do, sau do export file GeoJSON de ghi de.</p>
+          <select id="highwaySelect"></select>
+          <button id="loadHighwayBtn">Nap de chinh sua</button>
+          <button id="exportHighwayBtn" class="secondary">Export GeoJSON</button>
+          <div id="editStatus" class="status">Chua nap tuyen nao de chinh sua.</div>
+        `;
+        view.ui.add(editPanel, "top-left");
+
+        const highwaySelect = editPanel.querySelector("#highwaySelect");
+        const loadHighwayBtn = editPanel.querySelector("#loadHighwayBtn");
+        const exportHighwayBtn = editPanel.querySelector("#exportHighwayBtn");
+        const editStatus = editPanel.querySelector("#editStatus");
+
+        highwayEntries.forEach((item, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = item.fileName;
+          highwaySelect.appendChild(option);
+        });
+
+        let currentEditableFileName = "";
+        let hasPendingEdits = false;
+
+        function setStatus(message) {
+          editStatus.textContent = message;
+        }
+
+        function normalizeProperties(attributes) {
+          const props = { ...attributes };
+          delete props.OBJECTID;
+          delete props.ObjectID;
+          delete props.FID;
+          delete props.__OBJECTID;
+          return props;
+        }
+
+        function toExportFileName(fileName) {
+          const safeName = fileName || "edited_highway.geojson";
+          const withoutExt = safeName.replace(/\.geojson$/i, "");
+          if (withoutExt.endsWith("-origin")) {
+            return `${withoutExt}.geojson`;
+          }
+          return `${withoutExt}-origin.geojson`;
+        }
+
+        function toGeoJSONName(fileName) {
+          return fileName
+            .replace(/\.geojson$/i, "")
+            .replace(/-origin$/i, "");
+        }
+
+        function toLonLatPaths(geometry) {
+          if (!geometry) {
+            return [];
+          }
+
+          let sourceGeometry = geometry;
+          if (geometry.spatialReference?.isWebMercator) {
+            sourceGeometry = webMercatorUtils.webMercatorToGeographic(geometry);
+          }
+
+          return (sourceGeometry.paths || []).map((path) =>
+            path.map((coord) => [coord[0], coord[1]])
+          );
+        }
+
+        function polylineToGeoJSONGeometry(geometry) {
+          const paths = toLonLatPaths(geometry);
+          if (paths.length > 1) {
+            return {
+              type: "MultiLineString",
+              coordinates: paths,
+            };
+          }
+          return {
+            type: "LineString",
+            coordinates: paths[0] || [],
+          };
+        }
+
+        function downloadGeoJSON(geojson, fileName) {
+          const blob = new Blob([JSON.stringify(geojson, null, 2)], {
+            type: "application/geo+json;charset=utf-8",
+          });
+          const objectUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = objectUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(objectUrl);
+        }
+
+        async function loadHighwayForEditing() {
+          const selectedIndex = Number(highwaySelect.value);
+          const selectedEntry = highwayEntries[selectedIndex];
+          if (!selectedEntry) {
+            setStatus("Khong tim thay tuyen de nap.");
+            return;
+          }
+
+          editableHighwayLayer.removeAll();
+          sketch.cancel();
+
+          highwayLayers.forEach((layer) => {
+            layer.visible = true;
+          });
+
+          selectedEntry.layer.visible = false;
+
+          try {
+            const featureSet = await selectedEntry.layer.queryFeatures({
+              where: "1=1",
+              returnGeometry: true,
+              outFields: ["*"],
+            });
+
+            if (!featureSet.features.length) {
+              setStatus("Tuyen da chon khong co feature de chinh sua.");
+              selectedEntry.layer.visible = true;
+              return;
+            }
+
+            const editGraphics = featureSet.features.map(
+              (feature) =>
+                new Graphic({
+                  geometry: feature.geometry.clone(),
+                  attributes: normalizeProperties(feature.attributes || {}),
+                  symbol: {
+                    type: "simple-line",
+                    color: [255, 80, 0, 1],
+                    width: 4,
+                  },
+                })
+            );
+
+            editableHighwayLayer.addMany(editGraphics);
+
+            currentEditableFileName = selectedEntry.fileName || "edited_highway.geojson";
+            hasPendingEdits = false;
+            setStatus(
+              `Da nap ${currentEditableFileName}. Dung widget ben phai de click vao duong va reshape.`
+            );
+
+            if (editGraphics.length === 1) {
+              sketch.update(editGraphics[0], {
+                tool: "reshape",
+                enableRotation: false,
+                enableScaling: false,
+              });
+            }
+          } catch (error) {
+            selectedEntry.layer.visible = true;
+            console.error("Khong the nap tuyen de chinh sua:", error);
+            setStatus("Loi khi nap du lieu. Kiem tra console de biet chi tiet.");
+          }
+        }
+
+        function exportEditedHighway() {
+          if (!currentEditableFileName || editableHighwayLayer.graphics.length === 0) {
+            setStatus("Chua co duong nao duoc nap de export.");
+            return;
+          }
+
+          if (!hasPendingEdits) {
+            setStatus("Ban chua thay doi hinh hoc. Van co the export neu can.");
+          }
+
+          const features = editableHighwayLayer.graphics
+            .toArray()
+            .filter((graphic) => graphic.geometry?.type === "polyline")
+            .map((graphic) => {
+              const geometry = polylineToGeoJSONGeometry(graphic.geometry);
+              const properties = normalizeProperties(graphic.attributes || {});
+              properties.toa_do_duong_polyline = geometry.coordinates;
+
+              return {
+                type: "Feature",
+                properties: properties,
+                geometry: geometry,
+              };
+            });
+
+          if (!features.length) {
+            setStatus("Khong co geometry hop le de export.");
+            return;
+          }
+
+          const exportFileName = toExportFileName(currentEditableFileName);
+          const geojsonName = toGeoJSONName(exportFileName);
+
+          const geojson = {
+            type: "FeatureCollection",
+            name: geojsonName,
+            crs: {
+              type: "name",
+              properties: {
+                name: "urn:ogc:def:crs:OGC:1.3:CRS84",
+              },
+            },
+            features: features,
+          };
+
+          downloadGeoJSON(geojson, exportFileName);
+          hasPendingEdits = false;
+          setStatus(
+            `Da export ${exportFileName}. Thay file trong data/highway roi reload trang.`
+          );
+        }
+
+        loadHighwayBtn.addEventListener("click", loadHighwayForEditing);
+        exportHighwayBtn.addEventListener("click", exportEditedHighway);
+
+        sketch.on("update", (event) => {
+          if (event.state === "complete") {
+            hasPendingEdits = true;
+            setStatus("Da cap nhat hinh hoc. Bam Export GeoJSON de luu file.");
+          }
+        });
+
+        sketch.on("delete", () => {
+          hasPendingEdits = true;
+          setStatus("Da xoa mot feature. Bam Export GeoJSON de cap nhat file.");
         });
 
         const imageCache = new globalThis.Map();
