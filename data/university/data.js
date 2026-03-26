@@ -9,7 +9,7 @@ const universities = [
     img: "./img/uit.json"
   },
   {
-    truong: "ĐH Bách Khoa – ĐHQG HCM",
+    truong: "ĐH Bách Khoa cơ sở 1 – ĐHQG HCM",
     namThanhLap: 1957,
     chuyenNganh: "Kỹ thuật – Công nghệ",
     soLuong: 35000,
@@ -18,7 +18,7 @@ const universities = [
     img: "./img/bachkhoa.json"
   },
   {
-    truong: "ĐH Khoa học Tự nhiên – ĐHQG HCM",
+    truong: "ĐH Khoa học Tự nhiên cơ sở 1 – ĐHQG HCM",
     namThanhLap: 1996,
     chuyenNganh: "Khoa học máy tính",
     soLuong: 30000,
@@ -27,7 +27,7 @@ const universities = [
     img: "./img/hcmus.json"
   },
   {
-    truong: "ĐH Kinh tế TP.HCM",
+    truong: "ĐH Kinh tế TP.HCM cơ sở A",
     namThanhLap: 1976,
     chuyenNganh: "Kinh tế – Quản trị",
     soLuong: 36000,
@@ -36,7 +36,7 @@ const universities = [
     img: "./img/ueh.json"
   },
   {
-    truong: "ĐH Sư phạm Kỹ thuật TP.HCM",
+    truong: "ĐH Công nghệ Kỹ thuật TP.HCM cơ sở Thủ Đức",
     namThanhLap: 1962,
     chuyenNganh: "Kỹ thuật – Sư phạm kỹ thuật",
     soLuong: 28000,
